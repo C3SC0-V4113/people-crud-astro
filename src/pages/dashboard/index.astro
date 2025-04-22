@@ -1,0 +1,14 @@
+---
+import { getSession } from "auth-astro/server";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { LogoutButton } from "@/components/auth/login/logout-button";
+
+const session = await getSession(Astro.request);
+---
+
+<DashboardLayout title="Dashboard | Home">
+  <h1>Hola, Astro!</h1>
+  <p>Bienvenido, {session?.user?.name}</p>
+  <pre>{JSON.stringify(session, null, 2)}</pre>
+  <LogoutButton client:load />
+</DashboardLayout>

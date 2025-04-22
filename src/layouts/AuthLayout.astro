@@ -1,0 +1,24 @@
+---
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Layout from "./Layout.astro";
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+const { title = "Login", description = "" } = Astro.props;
+---
+
+<Layout title={title} description={description}>
+  <Card className="mt-10 max-w-2xl mx-auto">
+    <CardHeader>
+      <CardTitle><h1>{title}</h1></CardTitle>
+    </CardHeader>
+    <CardContent>
+      <slot />
+    </CardContent>
+  </Card>
+  <footer class="mx-1 mt-4 md:mx-6">
+    <p>© {new Date().getFullYear()} People Crud</p>
+  </footer>
+</Layout>

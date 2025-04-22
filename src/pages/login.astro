@@ -1,0 +1,10 @@
+---
+import { LoginButton } from "@/components/auth/login/login-button";
+import AuthLayout from "@/layouts/AuthLayout.astro";
+---
+
+<AuthLayout title="Login" description="Login to your account">
+  <div class="flex flex-col">
+    <LoginButton client:load />
+  </div>
+</AuthLayout>

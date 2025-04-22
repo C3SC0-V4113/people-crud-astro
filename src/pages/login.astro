@@ -1,10 +1,12 @@
 ---
+import { CredentialsForm } from "@/components/auth/login/credentials-form";
 import { LoginButton } from "@/components/auth/login/login-button";
 import AuthLayout from "@/layouts/AuthLayout.astro";
 ---
 
 <AuthLayout title="Login" description="Login to your account">
-  <div class="flex flex-col">
+  <div class="flex flex-col gap-6">
+    <CredentialsForm client:load />
     <LoginButton client:load />
   </div>
 </AuthLayout>

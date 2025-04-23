@@ -1,19 +1,23 @@
 ---
-import { CredentialsForm } from "@/components/auth/login/credentials-form";
 import { LoginButton } from "@/components/auth/login/login-button";
 import { TwitterLoginButton } from "@/components/auth/login/twitter-login-button";
 import AuthLayout from "@/layouts/AuthLayout.astro";
+import { CreateUserForm } from "@/components/auth/register/create-user-form";
 ---
 
-<AuthLayout title="Login" description="Login to your account">
+<AuthLayout
+  title="Register"
+  description="Create a new account using email and password"
+>
   <div class="flex flex-col gap-6">
-    <CredentialsForm client:load />
+    <CreateUserForm client:load />
     <LoginButton client:load />
     <TwitterLoginButton client:load />
     <p>
-      Puedes crear una cuenta <a
+      Si cuentas con una cuenta inicia sesión <a
         class="underline underline-offset-4"
-        href="/register">aqui</a>
+        href="/login">aqui</a
+      >
     </p>
   </div>
 </AuthLayout>

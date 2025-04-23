@@ -14,16 +14,12 @@ export const onRequest: MiddlewareHandler = async (
   const isAuthRoute = ["/login", "/register"].includes(url.pathname);
 
   if (isDashboardRoute && !session) {
-    console.log("Al login");
     return redirect("/login");
   }
 
   if (isAuthRoute && session) {
-    console.log("Al dashboard");
     return redirect("/dashboard");
   }
-
-  console.log("Nada");
 
   //   locals.session = session; // Aquí locals está **tipado** si defines tipos
 

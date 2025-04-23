@@ -1,6 +1,5 @@
 import type { Adapter } from "@auth/core/adapters";
 import { api } from "./clients";
-import { serialize } from "cookie";
 
 export function HttpAdapter(): Adapter {
   return {
@@ -19,6 +18,7 @@ export function HttpAdapter(): Adapter {
     },
 
     async getUserByEmail(email) {
+      console.log("Adapter - getUserByEmail - input:", email);
       const response = await api.get(`/users/email/${email}`);
       return response.data;
     },

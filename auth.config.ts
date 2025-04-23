@@ -1,6 +1,7 @@
 import { HttpAdapter } from "@/lib/auth-adapter";
 import Credentials from "@auth/core/providers/credentials";
 import Google from "@auth/core/providers/google";
+import Twitter from "@auth/core/providers/twitter";
 import { defineConfig } from "auth-astro";
 
 export default defineConfig({
@@ -8,6 +9,10 @@ export default defineConfig({
     Google({
       clientId: import.meta.env.GOOGLE_CLIENT_ID,
       clientSecret: import.meta.env.GOOGLE_CLIENT_SECRET,
+    }),
+    Twitter({
+      clientId: import.meta.env.AUTH_TWITTER_ID,
+      clientSecret: import.meta.env.AUTH_TWITTER_SECRET,
     }),
     Credentials({
       credentials: {
@@ -34,43 +39,21 @@ export default defineConfig({
   ],
   session: {
     strategy: "database",
-    maxAge: 60 * 60 * 24 * 30, // 30 días
+    // maxAge: 60 * 60 * 24 * 30, // 30 días
+    maxAge: 60 * 5, // 5 minutos
   },
   callbacks: {
-    async session({ session, user, token }) {
-      console.log("Callback - session:", session, user, token);
+    async session({ session, user }) {
+      console.log("Callback - session:", session, user);
       return {
         ...session,
         user: {
-          ...session.user,
-          id: user?.id! || token?.sub!,
+          ...user,
         },
       };
     },
-
-    // async jwt({ token, user, account, profile, session }) {
-    //   console.log("Callback - jwt:", token, user);
-
-    //   // Guarda el user.id en el token para tenerlo luego en session
-    //   if (user) {
-    //     token.id = user.id;
-    //   }
-
-    //   return token;
-    // },
   },
   adapter: HttpAdapter(), // 👈 Tu nuevo adapter
-  cookies: {
-    sessionToken: {
-      name: "authjs.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: false,
-      },
-    },
-  },
   pages: {
     signIn: "/login",
     signOut: "/login",

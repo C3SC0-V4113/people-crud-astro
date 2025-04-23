@@ -7,6 +7,8 @@ export const onRequest: MiddlewareHandler = async (
 ) => {
   const session = await getSession(request);
 
+  console.log("Middleware session:", session);
+
   const isDashboardRoute = url.pathname.startsWith("/dashboard");
 
   const isAuthRoute = ["/login", "/register"].includes(url.pathname);

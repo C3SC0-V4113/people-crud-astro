@@ -1,3 +1,4 @@
+"use client";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,9 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { api } from "@/lib/clients";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
+import { actions } from "astro:actions";
 
 const formSchema = z
   .object({
@@ -49,16 +50,17 @@ export const CreateUserForm = () => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     console.log(data);
     try {
-      const resp = await api.post("/user/register", {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
 
-      if (resp.status !== 200) {
-        throw new Error(resp.data.message);
+      const { error, data: resp } = await actions.registerUser(formData);
+
+      if (error) {
+        throw new Error(error.message);
       }
-      console.log("Usuario creado:", resp.data);
+      console.log("Usuario creado:", resp);
       form.reset();
     } catch (error) {
       toast.error(

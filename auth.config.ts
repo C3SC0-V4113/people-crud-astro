@@ -1,10 +1,29 @@
 import { HttpAdapter } from "@/lib/auth-adapter";
+import { api } from "@/lib/clients";
 import Credentials from "@auth/core/providers/credentials";
 import Google from "@auth/core/providers/google";
 import Twitter from "@auth/core/providers/twitter";
 import { defineConfig } from "auth-astro";
 
+export interface LoginResponse {
+  id: string;
+  name: string;
+  email: string;
+  email_verified: null;
+  image: null;
+  phone: null;
+  role: string;
+  created_at: Date;
+  updated_at: Date;
+  password: string;
+}
+
 export default defineConfig({
+  session: {
+    strategy: "database",
+    // maxAge: 60 * 60 * 24 * 30, // 30 días
+    maxAge: 60 * 5, // 5 minutos
+  },
   providers: [
     Google({
       clientId: import.meta.env.GOOGLE_CLIENT_ID,
@@ -21,28 +40,31 @@ export default defineConfig({
       },
       async authorize(credentials) {
         // Puedes hacer validación contra tu backend:
-        const response = await fetch(
-          `${import.meta.env.API_BASE_URL}/auth/validate`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(credentials),
-          }
+        console.log(credentials);
+        const response = await api.post<LoginResponse>(
+          "/users/validate",
+          credentials
         );
 
-        if (!response.ok) return null;
+        if (response.status !== 200) return null;
 
-        const user = await response.json();
-        return user; // { id, email, name, ... }
+        console.log(JSON.stringify(response.data));
+        const user = await response.data;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image || null,
+        }; // { id, email, name, ... }
       },
     }),
   ],
-  session: {
-    strategy: "database",
-    // maxAge: 60 * 60 * 24 * 30, // 30 días
-    maxAge: 60 * 5, // 5 minutos
-  },
+
   callbacks: {
+    // async jwt(params) {
+    //   console.log("Callback - jwt:", params);
+    //   return {};
+    // },
     async session({ session, user }) {
       console.log("Callback - session:", session, user);
       return {
@@ -51,6 +73,15 @@ export default defineConfig({
           ...user,
         },
       };
+    },
+  },
+  events: {
+    async signIn({ user, account }) {
+      console.log("Evento signIn user:", user);
+      console.log("Evento signIn account:", account);
+      if (account?.type !== "credentials") {
+        console.warn("Account type no es credentials, es:", account?.type);
+      }
     },
   },
   adapter: HttpAdapter(), // 👈 Tu nuevo adapter

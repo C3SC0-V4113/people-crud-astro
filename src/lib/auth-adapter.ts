@@ -13,6 +13,7 @@ export function HttpAdapter(): Adapter {
     },
 
     async getUser(id) {
+      console.log("Adapter - getUser - input:", id);
       const response = await api.get(`/users/${id}`);
       return response.data;
     },
@@ -57,18 +58,27 @@ export function HttpAdapter(): Adapter {
 
     // SESSIONS -----------------------
     async createSession(session) {
-      const response = await api.post("/sessions", {
-        ...session,
-        expires: new Date(session.expires), // Asegúrate que sea Date
-      });
       console.log("Adapter - createSession - input:", session);
-      console.log("Adapter - createSession - response:", response.data);
+      try {
+        const response = await api.post("/sessions", {
+          ...session,
+          expires: new Date(session.expires), // Asegúrate que sea Date
+        });
+        console.log("Adapter - createSession - response:", response.data);
 
-      return {
-        userId: response.data.user_id,
-        sessionToken: response.data.session_token,
-        expires: new Date(response.data.expires),
-      };
+        return {
+          userId: response.data.user_id,
+          sessionToken: response.data.session_token,
+          expires: new Date(response.data.expires),
+        };
+      } catch (error) {
+        console.error("Error en createSession:", error);
+        return {
+          userId: null,
+          sessionToken: null,
+          expires: new Date(),
+        };
+      }
     },
 
     async getSessionAndUser(sessionToken) {

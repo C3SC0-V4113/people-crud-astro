@@ -38,7 +38,7 @@ export const GET: APIRoute = async ({ cookies, url, redirect }) => {
     const sessionToken = crypto.randomUUID();
     const expires = new Date(Date.now() + maxAge * 1000);
 
-    const res = await api.post("/sessions", { sessionToken, userId, expires });
+    await api.post("/sessions", { sessionToken, userId, expires });
 
     // Reemplaza la cookie JWE por la de BD
     cookies.set(name, sessionToken, {

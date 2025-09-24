@@ -3,7 +3,9 @@ import { api } from "@/lib/clients";
 import Credentials from "@auth/core/providers/credentials";
 import Google from "@auth/core/providers/google";
 import Twitter from "@auth/core/providers/twitter";
+import { CredentialsSignin } from "@auth/core/errors";
 import { defineConfig } from "auth-astro";
+import { encode } from "@auth/core/jwt";
 
 export interface LoginResponse {
   id: string;
@@ -18,11 +20,13 @@ export interface LoginResponse {
   password: string;
 }
 
+const SESSION_MAX_AGE = 60 * 5; // 5 minutos
+
 export default defineConfig({
+  trustHost: true,
   session: {
     strategy: "database",
-    // maxAge: 60 * 60 * 24 * 30, // 30 días
-    maxAge: 60 * 5, // 5 minutos
+    maxAge: SESSION_MAX_AGE,
   },
   providers: [
     Google({
@@ -46,7 +50,8 @@ export default defineConfig({
           credentials
         );
 
-        if (response.status !== 200) return null;
+        if (response.status !== 200 || !response.data.id)
+          throw new CredentialsSignin("Invalid login");
 
         console.log(JSON.stringify(response.data));
         const user = await response.data;
@@ -55,16 +60,46 @@ export default defineConfig({
           email: user.email,
           name: user.name,
           image: user.image || null,
-        }; // { id, email, name, ... }
+        };
       },
     }),
   ],
+  jwt: {
+    async encode(params) {
+      // deja que Auth.js genere el token (JWE/JWT)
+      const tokenStr = await encode(params);
 
+      // Solo nos interesa cuando está generando la cookie de sesión
+      // (el "salt" coincide con el nombre de cookie de sesión).
+      const salt = params.salt;
+      const isSessionCookie =
+        salt === "authjs.session-token" ||
+        salt === "__Secure-authjs.session-token";
+
+      const userId = params?.token?.sub as string | undefined;
+
+      if (isSessionCookie && userId) {
+        try {
+          const maxAge = params.maxAge ?? SESSION_MAX_AGE;
+          const expires = new Date(Date.now() + maxAge * 1000);
+
+          // Crear la sesión en tu backend usando el JWE como session_token
+          await api.post("/sessions", {
+            sessionToken: tokenStr,
+            userId,
+            expires,
+          });
+        } catch (err: any) {
+          // Evita romper el login si hay duplicados u otros errores.
+          console.warn("jwt.encode bridge: createSession falló:", err?.message);
+        }
+      }
+
+      // Devuelve el token para que Auth.js lo ponga en la cookie
+      return tokenStr;
+    },
+  },
   callbacks: {
-    // async jwt(params) {
-    //   console.log("Callback - jwt:", params);
-    //   return {};
-    // },
     async session({ session, user }) {
       console.log("Callback - session:", session, user);
       return {
@@ -84,7 +119,7 @@ export default defineConfig({
       }
     },
   },
-  adapter: HttpAdapter(), // 👈 Tu nuevo adapter
+  adapter: HttpAdapter(),
   pages: {
     signIn: "/login",
     signOut: "/login",

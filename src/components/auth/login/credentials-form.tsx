@@ -31,9 +31,14 @@ export const CredentialsForm = () => {
   const [authError, setAuthError] = useState<string>();
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const authData = {
+      ...data,
+      redirect: true,
+      callbackUrl: "/api/auth/bridge?to=/dashboard",
+    };
     await signIn("credentials", {
       prefix: "/api/auth",
-      ...data,
+      ...authData,
     });
   };
 

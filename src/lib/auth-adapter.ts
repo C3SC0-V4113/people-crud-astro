@@ -116,11 +116,16 @@ export function HttpAdapter(): Adapter {
 
     // VERIFICATION TOKENS -----------------------
     async createVerificationToken(token) {
+      console.log("Adapter - createVerificationToken - input:", token);
       const response = await api.post("/verification-tokens", token);
       return response.data;
     },
 
     async useVerificationToken({ identifier, token }) {
+      console.log("Adapter - useVerificationToken - input:", {
+        identifier,
+        token,
+      });
       const response = await api.post("/verification-tokens/use", {
         identifier,
         token,
